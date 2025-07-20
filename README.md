@@ -97,6 +97,9 @@ Interactive reports and dashboards created using **Power BI** to give stakeholde
 
 PBIX files and screenshots are included in [`/Dashboards`](./Dashboards)
 
+Explore the live report on Power BI service:
+🔗 [View on Power BI](https://app.powerbi.com/view?r=eyJrIjoiZDIyM2FjNmUtZmQ0OS00YzM3LTg3MTQtMWMwYjI1ODVhMWRjIiwidCI6IjJiYjZlNWJjLWMxMDktNDdmYi05NDMzLWMxYzZmNGZhMzNmZiIsImMiOjl9)
+
 ---
 
 ## 📈 5. SSRS Reports
