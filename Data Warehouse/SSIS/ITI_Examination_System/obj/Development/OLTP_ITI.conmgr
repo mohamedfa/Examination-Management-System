@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="OLTP_ITI"
+  DTS:DTSID="{9DC50614-FBEC-4C90-AE46-A022752DBF45}"
+  DTS:CreationName="OLEDB">
+  <DTS:ObjectData>
+    <DTS:ConnectionManager
+      DTS:ConnectRetryCount="1"
+      DTS:ConnectRetryInterval="5"
+      DTS:ConnectionString="Data Source=.;Initial Catalog=ITI_Examination_System;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-ITI_Examination_System-{9DC50614-FBEC-4C90-AE46-A022752DBF45}LocalHost.ITI_Examination_System;Auto Translate=False;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>

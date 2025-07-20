@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="LocalHost.dwh_iti"
+  DTS:DTSID="{22C7AA1B-F9B3-405D-9448-E3D9C0275913}"
+  DTS:CreationName="OLEDB">
+  <DTS:ObjectData>
+    <DTS:ConnectionManager
+      DTS:ConnectRetryCount="1"
+      DTS:ConnectRetryInterval="5"
+      DTS:ConnectionString="Data Source=.;Initial Catalog=dwh_iti;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-ITI_Examination_System-{22C7AA1B-F9B3-405D-9448-E3D9C0275913}LocalHost.dwh_iti;Auto Translate=False;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>
