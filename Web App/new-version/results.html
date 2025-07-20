@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Results - ITI Examination System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>ITI Examination System</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-home"></i>Home
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+                <a href="exams.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>Exams
+                </a>
+                <a href="results.html" class="nav-link active">
+                    <i class="fas fa-chart-bar"></i>Results
+                </a>
+                <a href="profile.html" class="nav-link">
+                    <i class="fas fa-user"></i>Profile
+                </a>
+                <a href="#" class="nav-link" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container" style="padding-top: 100px; padding-bottom: 60px; min-height: calc(100vh - 200px);">
+            <div class="page-header">
+                <h1><i class="fas fa-chart-bar"></i> My Results</h1>
+                <p>View your exam performance and scores</p>
+            </div>
+
+            <div class="results-container" id="results-list">
+                <!-- Results will be loaded dynamically -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ITI Examination System</h4>
+                    <p>Professional online examination platform for modern education.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> info@iti.edu.eg</p>
+                    <p><i class="fas fa-phone"></i> +20 123 456 789</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ITI Examination System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        async function loadResults() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/results`, {
+                    headers: { 
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load results');
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.data && data.data.results) {
+                    renderResults(data.data.results);
+                } else {
+                    showMessage(data.message || 'No results found', 'info');
+                    document.getElementById('results-list').innerHTML = '<p>No results available yet.</p>';
+                }
+            } catch (error) {
+                showMessage('Failed to load results', 'error');
+                document.getElementById('results-list').innerHTML = '<p>Error loading results. Please try again later.</p>';
+            }
+        }
+
+        function renderResults(results) {
+            const container = document.getElementById('results-list');
+            container.innerHTML = '';
+            
+            if (!results || results.length === 0) {
+                container.innerHTML = '<p>No results available yet.</p>';
+                return;
+            }
+            
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                
+                // Debug information
+                console.log('Result data:', result);
+                console.log('Exam_Grade:', result.Exam_Grade);
+                console.log('Exam_Total_Marks:', result.Exam_Total_Marks);
+                console.log('IS_Pass:', result.IS_Pass);
+                
+                div.innerHTML = `
+                    <h3>${result.Exam_Name || 'Exam'}</h3>
+                    <p><strong>Score:</strong> ${result.Exam_Grade || 0} / ${result.Exam_Total_Marks || 100}</p>
+                    <p><strong>Status:</strong> ${result.IS_Pass || 'Pending'}</p>
+                    <p><strong>Date:</strong> ${new Date(result.Exam_Start_date || Date.now()).toLocaleDateString()}</p>
+                    <p><strong>Debug Info:</strong> Grade: ${result.Exam_Grade}, Total Marks: ${result.Exam_Total_Marks}, Pass: ${result.IS_Pass}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadResults);
+    </script>
+</body>
+</html>
