@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taking Exam - ITI Examination System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>ITI Examination System</span>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+                <a href="exams.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>Exams
+                </a>
+                <a href="results.html" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>Results
+                </a>
+                <a href="profile.html" class="nav-link">
+                    <i class="fas fa-user"></i>Profile
+                </a>
+                <a href="#" class="nav-link" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container" style="padding-top: 100px; padding-bottom: 60px; min-height: calc(100vh - 200px);">
+            <div class="exam-container">
+                <div class="exam-header">
+                    <h2 id="exam-title">Exam in Progress</h2>
+                </div>
+                
+                <div class="exam-timer-container">
+                    <div id="timer" class="exam-timer">
+                        <div class="timer-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="timer-content">
+                            <div class="timer-label">Time Remaining</div>
+                            <div class="timer-display" id="time-left">--:--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="exam-form">
+                    <div id="questions-container"></div>
+                    <button type="submit" class="btn btn-primary">Submit Exam</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ITI Examination System</h4>
+                    <p>Professional online examination platform for modern education.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> info@iti.edu.eg</p>
+                    <p><i class="fas fa-phone"></i> +20 123 456 789</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ITI Examination System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        let timerInterval;
+
+        async function loadExam() {
+            try {
+                // Get exam data from sessionStorage (set by script.js when starting exam)
+                const examData = sessionStorage.getItem('currentExam');
+                if (!examData) {
+                    showMessage('No exam data found. Please start an exam from the dashboard.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                    return;
+                }
+
+                currentExam = JSON.parse(examData);
+                renderQuestions(currentExam.questions);
+                startTimer(60); // 60 minutes timer
+            } catch (error) {
+                showMessage('Failed to load exam data', 'error');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            }
+        }
+
+        function renderQuestions(questions) {
+          const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            console.log('Questions data:', questions); // Debug log
+
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <h3>Question ${index + 1}</h3>
+                    <p>${question.question_text}</p>
+                    <div class="options">
+                `;
+
+                if (question.question_type === 'MCQ') {
+                    console.log('MCQ question:', question); // Debug log
+                    console.log('Choices:', question.choices); // Debug log
+                    
+                    // For MCQ questions, we need to parse the choices
+                    let choices = [];
+                    if (question.choices) {
+                        choices = question.choices.split('|').filter(choice => choice.trim() !== '');
+                    }
+                    
+                    // If no choices found, create default choices
+                    if (choices.length === 0) {
+                        choices = ['Option A', 'Option B', 'Option C', 'Option D'];
+                    }
+                    
+                    console.log('Parsed choices:', choices); // Debug log
+                    
+                    choices.forEach((choice, choiceIndex) => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'option';
+                        
+                        // Create radio button
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `question_${question.id}`;
+                        radio.value = choice;
+                        radio.id = `option_${question.id}_${choiceIndex}`;
+                        
+                        // Create label
+                        const label = document.createElement('label');
+                        label.htmlFor = `option_${question.id}_${choiceIndex}`;
+                        label.innerHTML = `<strong>${String.fromCharCode(65 + choiceIndex)}.</strong> ${choice}`;
+                        
+                        // Add radio and label to option div
+                        optionDiv.appendChild(radio);
+                        optionDiv.appendChild(label);
+                        
+                        // Add click handler to the div for visual feedback
+                        optionDiv.addEventListener('click', function(e) {
+                            console.log('Option clicked:', choice, 'for question:', question.id);
+                            selectOption(this, choice);
+                        });
+                        
+                        questionDiv.querySelector('.options').appendChild(optionDiv);
+                        console.log('Created option:', choice, 'for question:', question.id);
+                    });
+                    
+                } else {
+                    // True/False questions
+                    const trueOption = document.createElement('div');
+                    trueOption.className = 'option';
+                    trueOption.setAttribute('data-choice', 'T');
+                    trueOption.setAttribute('data-question-id', question.id);
+                    
+                    const trueRadio = document.createElement('input');
+                    trueRadio.type = 'radio';
+                    trueRadio.name = `question_${question.id}`;
+                    trueRadio.value = 'T';
+                    trueRadio.id = `option_${question.id}_true`;
+                    
+                    const trueLabel = document.createElement('label');
+                    trueLabel.htmlFor = `option_${question.id}_true`;
+                    trueLabel.innerHTML = '<strong>True</strong>';
+                    
+                    trueOption.appendChild(trueRadio);
+                    trueOption.appendChild(trueLabel);
+                    
+                    trueOption.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('True option clicked for question:', question.id);
+                        trueRadio.checked = true;
+                        selectOption(this, 'T');
+                    });
+                    
+                    trueOption.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                    });
+                    
+                    trueOption.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                    });
+                    
+                    questionDiv.querySelector('.options').appendChild(trueOption);
+                    console.log('Created True option for question:', question.id);
+
+                    const falseOption = document.createElement('div');
+                    falseOption.className = 'option';
+                    falseOption.setAttribute('data-choice', 'F');
+                    falseOption.setAttribute('data-question-id', question.id);
+                    
+                    const falseRadio = document.createElement('input');
+                    falseRadio.type = 'radio';
+                    falseRadio.name = `question_${question.id}`;
+                    falseRadio.value = 'F';
+                    falseRadio.id = `option_${question.id}_false`;
+                    
+                    const falseLabel = document.createElement('label');
+                    falseLabel.htmlFor = `option_${question.id}_false`;
+                    falseLabel.innerHTML = '<strong>False</strong>';
+                    
+                    falseOption.appendChild(falseRadio);
+                    falseOption.appendChild(falseLabel);
+                    
+                    falseOption.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('False option clicked for question:', question.id);
+                        falseRadio.checked = true;
+                        selectOption(this, 'F');
+                    });
+                    
+                    falseOption.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                    });
+                    
+                    falseOption.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                    });
+                    
+                    questionDiv.querySelector('.options').appendChild(falseOption);
+                    console.log('Created False option for question:', question.id);
+                }
+
+                questionDiv.innerHTML += `
+                    <input type="hidden" name="question_${question.id}" id="answer_${question.id}">
+                `;
+                container.appendChild(questionDiv);
+            });
+        }
+
+        function selectOption(element, value) {
+            console.log('selectOption called with element:', element, 'value:', value);
+            
+            // Get the question ID from the radio button name
+            const radio = element.querySelector('input[type="radio"]');
+            if (!radio) {
+                console.error('No radio button found in element');
+                return;
+            }
+            
+            const questionId = radio.name.replace('question_', '');
+            console.log('Question ID from radio name:', questionId);
+            
+            // Remove selection from other options in the same question
+            const question = element.closest('.question');
+            question.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Select this option
+            element.classList.add('selected');
+            
+            // Store the answer in the hidden input
+            const hiddenInput = document.getElementById(`answer_${questionId}`);
+            if (hiddenInput) {
+                hiddenInput.value = value;
+                console.log('Answer stored for question', questionId, ':', value);
+            } else {
+                console.error('Hidden input not found for question:', questionId);
+            }
+            
+            // The radio button is already checked by the label click
+            console.log('Radio button checked for question:', questionId);
+        }
+
+        function startTimer(durationMinutes) {
+            let time = durationMinutes * 60; // Convert to seconds
+            const timerElement = document.getElementById('timer');
+            
+            timerInterval = setInterval(() => {
+                time--;
+                const minutes = Math.floor(time / 60);
+                const seconds = time % 60;
+                const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('time-left').textContent = timeDisplay;
+                
+                // Add warning and danger states based on remaining time
+                timerElement.classList.remove('warning', 'danger');
+                
+                if (time <= 300) { // 5 minutes or less - danger state
+                    timerElement.classList.add('danger');
+                } else if (time <= 600) { // 10 minutes or less - warning state
+                    timerElement.classList.add('warning');
+                }
+                
+                if (time <= 0) {
+                    clearInterval(timerInterval);
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        async function submitExam(event) {
+          if (event) event.preventDefault();
+            
+            try {
+          clearInterval(timerInterval);
+                
+                // Collect all answers from radio buttons
+          const answers = [];
+                let unansweredCount = 0;
+                
+                currentExam.questions.forEach(question => {
+                    const selectedRadio = document.querySelector(`input[name="question_${question.id}"]:checked`);
+                    
+                    if (selectedRadio) {
+                        answers.push({
+                            question_id: question.id,
+                            student_answer: selectedRadio.value
+                        });
+                        console.log(`Question ${question.id} answer:`, selectedRadio.value);
+                    } else {
+                        console.log(`Question ${question.id} has no answer selected`);
+                        unansweredCount++;
+                    }
+                });
+
+                console.log('Total answers collected:', answers.length);
+                console.log('Unanswered questions:', unansweredCount);
+                console.log('Submitting answers:', answers);
+
+                if (answers.length === 0) {
+                    showMessage('Please answer at least one question before submitting.', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/exams/${currentExam.id}/submit`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({ answers })
+            });
+
+                const data = await response.json();
+                console.log('Submit response:', data);
+                
+                if (data.status === 'success') {
+                    showMessage('Exam submitted successfully!', 'success');
+                    // Clear exam data from sessionStorage
+                    sessionStorage.removeItem('currentExam');
+                    setTimeout(() => {
+              window.location.href = 'results.html';
+                    }, 2000);
+            } else {
+                    showMessage(data.message || 'Failed to submit exam', 'error');
+            }
+          } catch (error) {
+                console.error('Submit error:', error);
+                showMessage('Error submitting exam', 'error');
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
+            try {
+          loadExam();
+          document.getElementById('exam-form').addEventListener('submit', submitExam);
+                
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
